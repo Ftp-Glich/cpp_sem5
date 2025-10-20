@@ -1,0 +1,97 @@
+#include "application.hpp"
+
+Application::Application(std::string&& plugin_dir):
+    prev_result_(std::nullopt) {
+        pm_ = std::make_shared<PluginManager>(std::move(plugin_dir));
+        pm_->load_plugins();
+        calculator_ = std::make_unique<Calculator>(pm_);
+        supported_ops_ = pm_->get_op_list();
+    }
+
+void Application::run(std::istream& istream) {
+    std::string input;
+    std::getline(istream, input);
+    while(input != "exit") {
+        if ( input.size() == 0) {
+            std::getline(istream, input);
+            continue;
+        }
+        if (input == "help") {
+            std::cout << "Commands:\n type exit to quit\n type flush to reset previos calculation result\n type operations to\
+             get supported operations\n type update to load new plugins\n give a math example to calculate value\n    !!! Use '.' symbol to use floating point nums" << std::endl; 
+        } else if (input == "flush") {
+            prev_result_ = std::nullopt;
+        } else if (input == "operations") {
+            auto ops = pm_->get_op_list();
+            if(ops.size() == 0) {
+                std::cout << "No operations yet loaded" << std::endl;
+                continue;
+            }
+            for(auto& op : ops) {
+                std::cout << op << " ";
+            }
+            std::cout << std::endl;
+        } else if (input == "update") {
+            pm_->load_plugins();
+        } else {
+            std::vector<std::string> tokens;
+            tokens.reserve(input.size());
+            if (prev_result_.has_value()) {
+                tokens.push_back(std::to_string(prev_result_.value()));
+                prev_result_ = std::nullopt;
+            }
+            try {
+                tokenize(input, tokens);
+                for(auto& token: tokens) {
+                    std::cout << token << " ";
+                }
+                std::cout << std::endl;
+                prev_result_ = calculator_->calculate(std::move(tokens));
+                std::cout << prev_result_.value() << " "; 
+            } catch(std::runtime_error& e) {
+                std::cerr << "Failed to parse math example: " << e.what() << "\nFix issues and try again: " << std::endl;
+            } catch(std::logic_error& e) {
+                std::cerr << "Failed to calculate value: " << e.what() << "\nFix issues and try again: " << std::endl;
+            }
+        }
+        std::getline(istream, input);
+    }
+}
+
+void Application::tokenize(std::string& input, std::vector<std::string>& tokens) {
+    std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c){ return std::tolower(c); });
+    std::string token;
+    for (size_t i = 0; i < input.size(); ++i) {
+        char c = input[i];
+
+        if (std::isspace(static_cast<unsigned char>(c))) continue;
+
+        if (std::isdigit(static_cast<unsigned char>(c)) || c == '.') {
+            token.clear();
+            bool dotUsed = (c == '.');
+            token += c;
+            while (i + 1 < input.size() && (std::isdigit(static_cast<unsigned char>(input[i + 1])) || (!dotUsed && input[i + 1] == '.'))) {
+                if (input[i + 1] == '.') dotUsed = true;
+                token += input[++i];
+            }
+            tokens.push_back(token);
+        } else if (std::isalpha(static_cast<unsigned char>(c))) {
+            token.clear();
+            token += c;
+            while (i + 1 < input.size() && std::isalpha(static_cast<unsigned char>(input[i + 1]))) {
+                token += input[++i];
+            }
+            tokens.push_back(token);
+        } else if (std::string("+-*/^()").find(c) != std::string::npos) {
+            token = c;
+            if (std::find(supported_ops_.begin(), supported_ops_.end(), token) == supported_ops_.end()) {
+                throw std::runtime_error("Unsupported operation \"" + token + "\"");
+            }
+            tokens.push_back(token);
+        } else {
+            throw std::runtime_error("Warning: Unknown character: " + std::to_string(c));
+        }
+    }
+}
+
+
