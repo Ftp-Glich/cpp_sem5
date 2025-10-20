@@ -3,8 +3,7 @@
 #include <iostream>
 
 int main() {
-    PluginManager pm("plugins");
-    pm.load_plugins();
-    pm.execute("+", 2, 2);
+    Application app("plugins");
+    app.run(std::cin);
     return 0;
 }
