@@ -1,4 +1,6 @@
 #include "application.hpp"
+#include "plugin_interface.hpp"
+
 
 Application::Application(std::string&& plugin_dir):
     prev_result_(std::nullopt) {
@@ -6,6 +8,10 @@ Application::Application(std::string&& plugin_dir):
         pm_->load_plugins();
         calculator_ = std::make_unique<Calculator>(pm_);
         supported_ops_ = pm_->get_op_list();
+        supported_ops_.push_back({"+", 2, false, true});
+        supported_ops_.push_back({"-", 2, false, true});
+        supported_ops_.push_back({"*", 2, false, true});
+        supported_ops_.push_back({"/", 2, false, true});
     }
 
 void Application::run(std::istream& istream) {
@@ -23,17 +29,17 @@ void Application::run(std::istream& istream) {
             prev_result_ = std::nullopt;
         } else if (input == "operations") {
             for(auto& op : supported_ops_) {
-                std::cout << op << " ";
+                std::cout << op.name << " ";
             }
             std::cout << std::endl;
         } else if (input == "update") {
             pm_->load_plugins();
             supported_ops_ = pm_->get_op_list();
         } else {
-            std::vector<std::pair<std::string, bool>> tokens;
+            std::vector<std::pair<PluginInfo, tokenType>> tokens;
             tokens.reserve(input.size());
             if (prev_result_.has_value()) {
-                tokens.push_back({std::to_string(prev_result_.value()), false});
+                tokens.push_back({{std::to_string(prev_result_.value()).c_str(), 0, 0, 0}, tokenType::NUMBER});
                 prev_result_ = std::nullopt;
             }
             try {
@@ -51,12 +57,12 @@ void Application::run(std::istream& istream) {
     }
 }
 
-void Application::tokenize(std::string& input, std::vector<std::pair<std::string, bool>>& tokens) {
+void Application::tokenize(std::string& input, std::vector<std::pair<PluginInfo, tokenType>>& tokens) {
     std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c){ return std::tolower(c); });
     std::string token;
     for (size_t i = 0; i < input.size(); ++i) {
         char c = input[i];
-
+        
         if (std::isspace(static_cast<unsigned char>(c))) continue;
 
         if (std::isdigit(static_cast<unsigned char>(c)) || c == '.') {
@@ -67,25 +73,29 @@ void Application::tokenize(std::string& input, std::vector<std::pair<std::string
                 if (input[i + 1] == '.') dotUsed = true;
                 token += input[++i];
             }
-            tokens.push_back({token, false});
-        } else if (std::isalpha(static_cast<unsigned char>(c))) {
+            tokens.push_back({{token.c_str(), 0, 0, 0}, tokenType::NUMBER});
+        } else if (c == '(') {
+            tokens.push_back({{"(", 0, false, false}, tokenType::LPAREN});
+        } else if (c == ')') {
+            tokens.push_back({{")", 0, false, false}, tokenType::RPAREN});
+        } else if (std::string("+-*/").find(c) != std::string::npos) {
+            tokens.push_back({{"c", 2, false, true}, tokenType::OPERATOR});
+        } else {
             token.clear();
-            token += c;
-            while (i + 1 < input.size() && std::isalpha(static_cast<unsigned char>(input[i + 1]))) {
+            bool found = false;
+            while (i < input.size() && !std::isspace(static_cast<unsigned char>(input[i + 1]))) {
+                auto it = std::find_if(supported_ops_.begin(), supported_ops_.end(), [token](const PluginInfo& info) { return info.name == token; });
+                if(it != supported_ops_.end()) {
+                    auto type = it->is_op ? tokenType::OPERATOR : tokenType::FUNCTION;
+                    tokens.push_back({*it, type});
+                    found = true;
+                    break;
+                }
                 token += input[++i];
             }
-            if (!pm_->exists(token)) {
-                throw std::runtime_error("Unsupported operation \"" + token + "\"");
+            if(!found) {
+                throw std::runtime_error("Unsupported operations founded");
             }
-            tokens.push_back({token, true});
-        } else if (std::string("+-*/^()").find(c) != std::string::npos) {
-            token = c;
-            if (!pm_->exists(token)) {
-                throw std::runtime_error("Unsupported operation \"" + token + "\"");
-            }
-            tokens.push_back({token, true});
-        } else {
-            throw std::runtime_error("Warning: Unknown character: " + std::to_string(c));
         }
     }
 }

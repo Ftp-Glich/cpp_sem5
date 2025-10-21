@@ -4,13 +4,12 @@
 #include <cstdint>
 #include <windows.h>
 #include <unordered_map>
+#include "plugin_interface.hpp"
 
 struct Plugin {
     HMODULE handle;
-    std::string name;
     double (*operate)(double, double);
-    bool is_single;
-    bool right_associative;
+    PluginInfo info;
 };
 
 class PluginManager {
@@ -19,7 +18,8 @@ public:
     void load_plugins();
     double execute(const std::string& op, double a, double b = 0) const;
     bool exists(const std::string& op) const;
-    std::vector<std::string> get_op_list() const;
+    std::vector<PluginInfo> get_op_list() const;
+    PluginInfo get_info(const std::string& op) const;
 private:
     std::unordered_map<std::string, Plugin> plugins_;
     std::string directory;

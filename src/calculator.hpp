@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stack>
+#include <queue>
 #include <memory>
 #include <vector>
 #include <string>
@@ -8,15 +9,21 @@
 
 #include "plugin_manager.hpp"
 
+enum tokenType{
+    NUMBER,
+    OPERATOR,
+    LPAREN, RPAREN,
+    FUNCTION, 
+};
+
 class Calculator
 {
 public:
     Calculator() = delete;
     explicit Calculator(std::shared_ptr<PluginManager> pm);
-    double calculate(std::vector<std::pair<std::string, bool>>&& tokens);
+    double calculate(std::vector<std::pair<PluginInfo, tokenType>>&& tokens);
     ~Calculator() = default;
-private:
-    std::stack<std::pair<std::string, uint32_t>> op_stack;
-    std::stack<double> num_stack;
+private:    
+    std::queue<std::pair<std::string, bool>> rpm_;
     std::shared_ptr<PluginManager> pm_;
 };

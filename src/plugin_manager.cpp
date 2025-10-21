@@ -1,5 +1,4 @@
 #include "plugin_manager.hpp"
-#include "plugin_interface.hpp"
 #include <filesystem>
 #include <iostream>
 
@@ -27,7 +26,7 @@ void PluginManager::load_plugins() {
             }
 
             std::string op_name = get_info().name;
-            plugins_[op_name] = {lib, op_name, op_func, get_info().is_single, get_info().right_associative};
+            plugins_[op_name] = {lib, op_func, get_info()};
             std::cout << "Loaded plugin: " << op_name << "\n";
         }
     }
@@ -44,10 +43,18 @@ bool PluginManager::exists(const std::string& op) const{
     return plugins_.find(op) != plugins_.end();
 }
  
-std::vector<std::string> PluginManager::get_op_list() const{
-    std::vector<std::string> res;
+std::vector<PluginInfo> PluginManager::get_op_list() const{
+    std::vector<PluginInfo> res;
     res.reserve(plugins_.size());
     std::transform(plugins_.begin(), plugins_.end(), std::back_inserter(res),
-        [](const auto& key_value_pair) { return key_value_pair.first; });
+        [](const auto& key_value_pair) { return key_value_pair.second.info; });
     return std::move(res);
+}
+
+PluginInfo PluginManager::get_info(const std::string& op) const{
+    auto it = plugins_.find(op);
+    if (it != plugins_.end()) {
+        return it->second.info;
+    }
+    throw std::runtime_error("Have no loaded plugin " + op);
 }
