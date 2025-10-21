@@ -26,30 +26,25 @@ void PluginManager::load_plugins() {
                 continue;
             }
 
-            std::string op_name = get_info().sign;
-            plugins_[op_name] = {lib, op_name, op_func, get_info().is_func};
+            std::string op_name = get_info().name;
+            plugins_[op_name] = {lib, op_name, op_func, get_info().is_single, get_info().right_associative};
             std::cout << "Loaded plugin: " << op_name << "\n";
         }
     }
 }
 
-double PluginManager::execute(const std::string& op, double a, double b) {
+double PluginManager::execute(const std::string& op, double a, double b) const{
     auto it = plugins_.find(op);
     if (it != plugins_.end()) {
-        return plugins_[op].operate(a, b);
+        return it->second.operate(a, b);
     }
-    throw std::runtime_error("Unknown operation: " + op);
 }
 
-bool PluginManager::is_func(const std::string& op) {
-    auto it = plugins_.find(op);
-    if (it != plugins_.end()) {
-        return plugins_[op].is_func;
-    }
-    throw std::runtime_error("Unknown operation" + op);
+bool PluginManager::exists(const std::string& op) const{
+    return plugins_.find(op) != plugins_.end();
 }
-
-std::vector<std::string> PluginManager::get_op_list() {
+ 
+std::vector<std::string> PluginManager::get_op_list() const{
     std::vector<std::string> res;
     res.reserve(plugins_.size());
     std::transform(plugins_.begin(), plugins_.end(), std::back_inserter(res),

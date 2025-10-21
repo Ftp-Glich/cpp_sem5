@@ -4,8 +4,9 @@ extern "C" {
 
 struct PluginInfo
 {
-    bool is_func;
-    const char* sign;
+    const char* name;
+    bool is_single;
+    bool right_associative;
 };
 
 

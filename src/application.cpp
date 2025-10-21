@@ -22,29 +22,22 @@ void Application::run(std::istream& istream) {
         } else if (input == "flush") {
             prev_result_ = std::nullopt;
         } else if (input == "operations") {
-            auto ops = pm_->get_op_list();
-            if(ops.size() == 0) {
-                std::cout << "No operations yet loaded" << std::endl;
-                continue;
-            }
-            for(auto& op : ops) {
+            for(auto& op : supported_ops_) {
                 std::cout << op << " ";
             }
             std::cout << std::endl;
         } else if (input == "update") {
             pm_->load_plugins();
+            supported_ops_ = pm_->get_op_list();
         } else {
-            std::vector<std::string> tokens;
+            std::vector<std::pair<std::string, bool>> tokens;
             tokens.reserve(input.size());
             if (prev_result_.has_value()) {
-                tokens.push_back(std::to_string(prev_result_.value()));
+                tokens.push_back({std::to_string(prev_result_.value()), false});
                 prev_result_ = std::nullopt;
             }
             try {
                 tokenize(input, tokens);
-                for(auto& token: tokens) {
-                    std::cout << token << " ";
-                }
                 std::cout << std::endl;
                 prev_result_ = calculator_->calculate(std::move(tokens));
                 std::cout << prev_result_.value() << " "; 
@@ -58,7 +51,7 @@ void Application::run(std::istream& istream) {
     }
 }
 
-void Application::tokenize(std::string& input, std::vector<std::string>& tokens) {
+void Application::tokenize(std::string& input, std::vector<std::pair<std::string, bool>>& tokens) {
     std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c){ return std::tolower(c); });
     std::string token;
     for (size_t i = 0; i < input.size(); ++i) {
@@ -74,20 +67,23 @@ void Application::tokenize(std::string& input, std::vector<std::string>& tokens)
                 if (input[i + 1] == '.') dotUsed = true;
                 token += input[++i];
             }
-            tokens.push_back(token);
+            tokens.push_back({token, false});
         } else if (std::isalpha(static_cast<unsigned char>(c))) {
             token.clear();
             token += c;
             while (i + 1 < input.size() && std::isalpha(static_cast<unsigned char>(input[i + 1]))) {
                 token += input[++i];
             }
-            tokens.push_back(token);
-        } else if (std::string("+-*/^()").find(c) != std::string::npos) {
-            token = c;
-            if (std::find(supported_ops_.begin(), supported_ops_.end(), token) == supported_ops_.end()) {
+            if (!pm_->exists(token)) {
                 throw std::runtime_error("Unsupported operation \"" + token + "\"");
             }
-            tokens.push_back(token);
+            tokens.push_back({token, true});
+        } else if (std::string("+-*/^()").find(c) != std::string::npos) {
+            token = c;
+            if (!pm_->exists(token)) {
+                throw std::runtime_error("Unsupported operation \"" + token + "\"");
+            }
+            tokens.push_back({token, true});
         } else {
             throw std::runtime_error("Warning: Unknown character: " + std::to_string(c));
         }
