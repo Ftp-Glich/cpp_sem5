@@ -20,11 +20,11 @@ class Calculator
 {
 public:
     Calculator() = delete;
-    explicit Calculator(std::shared_ptr<PluginManager> pm);
+    explicit Calculator(sptr<PluginManager> pm);
     double calculate(std::vector<std::pair<PluginInfo, tokenType>>& tokens);
     ~Calculator() = default;
 private:    
     bool shouldPop(PluginInfo top, PluginInfo cur);
     std::queue<std::pair<std::string, bool>> shunting_yard(const std::vector<std::pair<PluginInfo, tokenType>>& tokens);
-    std::shared_ptr<PluginManager> pm_;
+    sptr<PluginManager> pm_;
 };

@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <iostream>
 
-Calculator::Calculator(std::shared_ptr<PluginManager> pm):
+Calculator::Calculator(sptr<PluginManager> pm):
  pm_(pm) {}
 
 double Calculator::calculate(std::vector<std::pair<PluginInfo, tokenType>>& tokens) {

@@ -2,6 +2,7 @@
 #include "plugin_interface.hpp"
 
 
+
 Application::Application(std::string&& plugin_dir):
     prev_result_(std::nullopt) {
         pm_ = std::make_shared<PluginManager>(std::move(plugin_dir));

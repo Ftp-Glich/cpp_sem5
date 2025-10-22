@@ -1,17 +1,27 @@
 #pragma once
 
-extern "C" {
+#ifdef _WIN32
+  #ifdef PLUGIN_EXPORTS
+    #define PLUGIN_API __declspec(dllexport)
+  #else
+    #define PLUGIN_API __declspec(dllimport)
+  #endif
+#else
+  #define PLUGIN_API
+#endif
 
-struct PluginInfo
-{
-    const char* name;
+#include <string>
+
+class PLUGIN_API IOperation {
+public:
+    virtual ~IOperation() = default;
+    virtual std::string name() const = 0;
+    virtual double operate(double a, double b) const = 0;
     unsigned int arity;
     bool right_associative;
-    bool is_op;
+    bool is_operator;
 };
 
+extern "C" PLUGIN_API IOperation* create_plugin();
 
-__declspec(dllexport) const PluginInfo get_operation_info();
-
-__declspec(dllexport) double operate(double a, double b);
-}
+extern "C" PLUGIN_API void destroy_plugin(IOperation* plugin);
