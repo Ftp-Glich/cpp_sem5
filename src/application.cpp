@@ -44,8 +44,7 @@ void Application::run(std::istream& istream) {
             }
             try {
                 tokenize(input, tokens);
-                std::cout << std::endl;
-                prev_result_ = calculator_->calculate(std::move(tokens));
+                prev_result_ = calculator_->calculate(tokens);
                 std::cout << prev_result_.value() << " "; 
             } catch(std::runtime_error& e) {
                 std::cerr << "Failed to parse math example: " << e.what() << "\nFix issues and try again: " << std::endl;
@@ -73,13 +72,21 @@ void Application::tokenize(std::string& input, std::vector<std::pair<PluginInfo,
                 if (input[i + 1] == '.') dotUsed = true;
                 token += input[++i];
             }
-            tokens.push_back({{token.c_str(), 0, 0, 0}, tokenType::NUMBER});
+            auto name = new char[token.size() + 1];
+            strcpy(name, token.c_str());
+            tokens.push_back({{name, 0, 0, 0}, tokenType::NUMBER});
         } else if (c == '(') {
-            tokens.push_back({{"(", 0, false, false}, tokenType::LPAREN});
+            auto name = new char[2];
+            strcpy(name, "(");
+            tokens.push_back({{name, 0, false, false}, tokenType::LPAREN});
         } else if (c == ')') {
-            tokens.push_back({{")", 0, false, false}, tokenType::RPAREN});
+            auto name = new char[2];
+            strcpy(name, ")");
+            tokens.push_back({{name, 0, false, false}, tokenType::RPAREN});
         } else if (std::string("+-*/").find(c) != std::string::npos) {
-            tokens.push_back({{"c", 2, false, true}, tokenType::OPERATOR});
+            auto name = new char[2];
+            strcpy(name, std::string(1, c).c_str());
+            tokens.push_back({{name, 2, false, true}, tokenType::OPERATOR});
         } else {
             token.clear();
             bool found = false;
