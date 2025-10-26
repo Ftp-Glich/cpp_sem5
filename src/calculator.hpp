@@ -32,6 +32,6 @@ public:
     ~Calculator() = default;
 private:    
     bool shouldPop(Token top, Token cur);
-    std::queue<Token> shunting_yard(const std::vector<Token>& tokens);
+    std::deque<Token> shunting_yard(const std::vector<Token>& tokens);
     sptr<PluginManager> pm_;
 };

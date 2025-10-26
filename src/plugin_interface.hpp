@@ -16,7 +16,7 @@ class PLUGIN_API IOperation {
 public:
     virtual ~IOperation() = default;
     virtual std::string name() const = 0;
-    virtual double operate(double a, double b) const = 0;
+    virtual double operate(double a, double b = 0) const = 0;
     unsigned int arity;
     bool right_associative;
     bool is_operator;

@@ -42,7 +42,7 @@ void Application::run(std::istream& istream) {
                 prev_result_ = calculator_->calculate(tokens);
                 std::cout << prev_result_.value() << " "; 
             } catch(std::runtime_error& e) {
-                std::cerr << "Failed to parse math example: " << e.what() << "\nFix issues and try again: " << std::endl;
+                std::cerr << "Failed to parse math example: " << e.what() << "\nFix issues and try again: \n" << std::endl;
             } catch(std::logic_error& e) {
                 std::cerr << "Failed to calculate value: " << e.what() << "\nFix issues and try again: " << std::endl;
             }
@@ -82,6 +82,7 @@ void Application::tokenize(std::string& input, std::vector<Token>& tokens) {
             tokens.push_back({tokenType::OPERATOR, nullptr, 0, std::move(op)});
         } else {
             token.clear();
+            token = c;
             bool found = false;
             while (i < input.size() && !std::isspace(static_cast<unsigned char>(input[i + 1]))) {
                 auto it = std::find_if(supported_ops_.begin(), supported_ops_.end(), [token](sptr<IOperation> info) { return info->name() == token; });
