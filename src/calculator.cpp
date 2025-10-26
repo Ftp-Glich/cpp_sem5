@@ -5,62 +5,58 @@
 Calculator::Calculator(sptr<PluginManager> pm):
  pm_(pm) {}
 
-double Calculator::calculate(std::vector<std::pair<PluginInfo, tokenType>>& tokens) {
-    std::queue<std::pair<std::string, bool>> rpm;
+double Calculator::calculate(std::vector<Token>& tokens) {
+    std::queue<Token> rpm;
     rpm = shunting_yard(std::move(tokens));
     auto size = rpm.size();
-    for(int i = 0; i < size; ++i) {
-        std::cout << rpm.front().first << " "; 
-        rpm.pop();
-    }
     return 0;
 }
 
-bool Calculator::shouldPop(PluginInfo top, PluginInfo cur) {
-    auto get_prec = [this](PluginInfo info) -> int {
-        if(pm_->exists(info.name)) {
+bool Calculator::shouldPop(Token top, Token cur) {
+    auto get_prec = [this](Token info) -> int {
+        if(info.operation != nullptr && pm_->exists(info.operation->name())) {
             return 2;
-        } else if (info.name == "*" || info.name == "/") {
+        } else if (info.sign == "*" || info.sign == "/") {
             return 1;
         } else {
             return 0;
         }
     };
-    return top.is_op && (get_prec(top) > get_prec(cur) || (get_prec(top) == get_prec(cur) && !cur.right_associative));
+    return (top.operation != nullptr && top.operation->is_operator) && (get_prec(top) > get_prec(cur) || (get_prec(top) == get_prec(cur) && !(top.operation != nullptr && cur.operation->right_associative)));
 }
 
-std::queue<std::pair<std::string, bool>> Calculator::shunting_yard(const std::vector<std::pair<PluginInfo, tokenType>>& tokens) {
-    std::queue<std::pair<std::string, bool>> rpm;
-    std::stack<PluginInfo> op_stack;
+std::queue<Token> Calculator::shunting_yard(const std::vector<Token>& tokens) {
+    std::queue<Token> rpm;
+    std::stack<Token> op_stack;
     for(auto& token: tokens) {
-        switch (token.second) {
+        switch (token.type) {
         case tokenType::NUMBER:
-            rpm.push({token.first.name, true});
+            rpm.push(token);
             break;
         case tokenType::FUNCTION:
-            op_stack.push(token.first);
+            op_stack.push(token);
             break;
         case tokenType::OPERATOR:
-            while (!op_stack.empty() && shouldPop(op_stack.top(), token.first)) {
-                rpm.push({op_stack.top().name, false});
+            while (!op_stack.empty() && shouldPop(op_stack.top(), token)) {
+                rpm.push(token);
                 op_stack.pop();
             }
-            op_stack.push(token.first);
+            op_stack.push(token);
             break;
         case tokenType::LPAREN:
-            op_stack.push(token.first);
+            op_stack.push(token);
             break;
         case tokenType::RPAREN:
-            while (!op_stack.empty() && op_stack.top().name != "(") {
-                rpm.push({op_stack.top().name, false});
+            while (!op_stack.empty() && op_stack.top().sign != "(") {
+                rpm.push(op_stack.top());
                 op_stack.pop();
             }
             if (!op_stack.empty()) {
                 throw std::logic_error("Mismatched parentheses");
             }
             op_stack.pop();
-            if (!op_stack.empty() && !op_stack.top().is_op) {
-                rpm.push({op_stack.top().name, false});
+            if (!op_stack.empty() && !op_stack.top().operation->is_operator) {
+                rpm.push(op_stack.top());
                 op_stack.pop();
             }
         default:
@@ -68,10 +64,10 @@ std::queue<std::pair<std::string, bool>> Calculator::shunting_yard(const std::ve
         }
     }    
     while (!op_stack.empty()) {
-        if (op_stack.top().name == "(" || op_stack.top().name == ")") {
+        if (op_stack.top().sign == "(" || op_stack.top().sign == ")") {
             throw std::logic_error("Mismatched parentheses");
         }
-        rpm.push({op_stack.top().name, false});
+        rpm.push(op_stack.top());
         op_stack.pop();
     }
     return std::move(rpm);

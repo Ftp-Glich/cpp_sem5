@@ -23,7 +23,7 @@ public:
     explicit Application(std::string&& plugin_dir);
     void run(std::istream& istream);
 private:
-    void tokenize(std::string& input, std::vector<std::pair<sptr<IOperation>, tokenType>>& tokens);
+    void tokenize(std::string& input, std::vector<Token>& tokens);
     void update_pugins();
     std::unique_ptr<Calculator> calculator_;
     sptr<PluginManager> pm_;

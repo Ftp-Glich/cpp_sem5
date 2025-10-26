@@ -16,15 +16,22 @@ enum tokenType{
     FUNCTION, 
 };
 
+struct Token {
+    tokenType type;
+    sptr<IOperation> operation;
+    double val;
+    std::string sign;
+};
+
 class Calculator
 {
 public:
     Calculator() = delete;
     explicit Calculator(sptr<PluginManager> pm);
-    double calculate(std::vector<std::pair<PluginInfo, tokenType>>& tokens);
+    double calculate(std::vector<Token>& tokens);
     ~Calculator() = default;
 private:    
-    bool shouldPop(PluginInfo top, PluginInfo cur);
-    std::queue<std::pair<std::string, bool>> shunting_yard(const std::vector<std::pair<PluginInfo, tokenType>>& tokens);
+    bool shouldPop(Token top, Token cur);
+    std::queue<Token> shunting_yard(const std::vector<Token>& tokens);
     sptr<PluginManager> pm_;
 };

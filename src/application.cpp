@@ -1,18 +1,12 @@
 #include "application.hpp"
 #include "plugin_interface.hpp"
 
-
-
 Application::Application(std::string&& plugin_dir):
     prev_result_(std::nullopt) {
         pm_ = std::make_shared<PluginManager>(std::move(plugin_dir));
         pm_->load_plugins();
         calculator_ = std::make_unique<Calculator>(pm_);
         supported_ops_ = pm_->get_op_list();
-        supported_ops_.push_back({"+", 2, false, true});
-        supported_ops_.push_back({"-", 2, false, true});
-        supported_ops_.push_back({"*", 2, false, true});
-        supported_ops_.push_back({"/", 2, false, true});
     }
 
 void Application::run(std::istream& istream) {
@@ -30,17 +24,17 @@ void Application::run(std::istream& istream) {
             prev_result_ = std::nullopt;
         } else if (input == "operations") {
             for(auto& op : supported_ops_) {
-                std::cout << op.name << " ";
+                std::cout << op->name() << " ";
             }
             std::cout << std::endl;
         } else if (input == "update") {
             pm_->load_plugins();
             supported_ops_ = pm_->get_op_list();
         } else {
-            std::vector<std::pair<PluginInfo, tokenType>> tokens;
+            std::vector<Token> tokens;
             tokens.reserve(input.size());
             if (prev_result_.has_value()) {
-                tokens.push_back({{std::to_string(prev_result_.value()).c_str(), 0, 0, 0}, tokenType::NUMBER});
+                tokens.push_back({tokenType::NUMBER, nullptr, prev_result_.value()});
                 prev_result_ = std::nullopt;
             }
             try {
@@ -57,7 +51,7 @@ void Application::run(std::istream& istream) {
     }
 }
 
-void Application::tokenize(std::string& input, std::vector<std::pair<PluginInfo, tokenType>>& tokens) {
+void Application::tokenize(std::string& input, std::vector<Token>& tokens) {
     std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c){ return std::tolower(c); });
     std::string token;
     for (size_t i = 0; i < input.size(); ++i) {
@@ -73,29 +67,27 @@ void Application::tokenize(std::string& input, std::vector<std::pair<PluginInfo,
                 if (input[i + 1] == '.') dotUsed = true;
                 token += input[++i];
             }
-            auto name = new char[token.size() + 1];
-            strcpy(name, token.c_str());
-            tokens.push_back({{name, 0, 0, 0}, tokenType::NUMBER});
+            tokens.push_back({tokenType::NUMBER, nullptr, std::stod(token)});
         } else if (c == '(') {
             auto name = new char[2];
             strcpy(name, "(");
-            tokens.push_back({{name, 0, false, false}, tokenType::LPAREN});
+            tokens.push_back({tokenType::LPAREN});
         } else if (c == ')') {
             auto name = new char[2];
             strcpy(name, ")");
-            tokens.push_back({{name, 0, false, false}, tokenType::RPAREN});
+            tokens.push_back({tokenType::RPAREN});
         } else if (std::string("+-*/").find(c) != std::string::npos) {
-            auto name = new char[2];
-            strcpy(name, std::string(1, c).c_str());
-            tokens.push_back({{name, 2, false, true}, tokenType::OPERATOR});
+            std::string op;
+            op = c;
+            tokens.push_back({tokenType::OPERATOR, nullptr, 0, std::move(op)});
         } else {
             token.clear();
             bool found = false;
             while (i < input.size() && !std::isspace(static_cast<unsigned char>(input[i + 1]))) {
-                auto it = std::find_if(supported_ops_.begin(), supported_ops_.end(), [token](const PluginInfo& info) { return info.name == token; });
+                auto it = std::find_if(supported_ops_.begin(), supported_ops_.end(), [token](sptr<IOperation> info) { return info->name() == token; });
                 if(it != supported_ops_.end()) {
-                    auto type = it->is_op ? tokenType::OPERATOR : tokenType::FUNCTION;
-                    tokens.push_back({*it, type});
+                    auto type = (*it)->is_operator ? tokenType::OPERATOR : tokenType::FUNCTION;
+                    tokens.push_back({type, *it});
                     found = true;
                     break;
                 }
