@@ -26,9 +26,14 @@ void PluginManager::load_plugins() {
             FreeLibrary(lib);
             continue;
         }
-
-        auto instance = sptr<IOperation>(create());
-        plugins_[instance->name()] = { lib, instance };
+        sptr<IOperation> instance(
+            create(),
+            [destroy, lib](IOperation* p) {
+                if (p) destroy(p);
+            }
+        );
+        plugins_[instance->name()] = instance;
+        loaded_libs_.push_back(lib);
         std::cout << "Loaded plugin: " << instance->name() << "\n";
     }
 }
@@ -36,7 +41,7 @@ void PluginManager::load_plugins() {
 double PluginManager::execute(const std::string& op, double a, double b) const{
     auto it = plugins_.find(op);
     if (it != plugins_.end()) {
-        return it->second.op->operate(a, b);
+        return it->second->operate(a, b);
     }
 }
 
@@ -48,22 +53,21 @@ std::vector<sptr<IOperation>> PluginManager::get_op_list() const{
     std::vector<sptr<IOperation>> res;
     res.reserve(plugins_.size());
     std::transform(plugins_.begin(), plugins_.end(), std::back_inserter(res),
-        [](const auto& key_value_pair) { return key_value_pair.second.op; });
+        [](const auto& key_value_pair) { return key_value_pair.second; });
     return std::move(res);
 }
 
 sptr<IOperation> PluginManager::get_info(const std::string& op) const{
     auto it = plugins_.find(op);
     if (it != plugins_.end()) {
-        return it->second.op;
+        return it->second;
     }
     throw std::runtime_error("Have no loaded plugin " + op);
 }
 
 PluginManager::~PluginManager() {
-    for (auto& [name, p] : plugins_) {
-        auto destroy = (void (*)(IOperation*))GetProcAddress(p.handle, "destroy_plugin");
-        if (destroy) destroy(p.op.get());
-        FreeLibrary(p.handle);
+    plugins_.clear();
+    for (auto& lib: loaded_libs_) {
+        FreeLibrary(lib);
     }
 }

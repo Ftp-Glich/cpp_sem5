@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "plugin_interface.hpp"
+#include <numbers>
 
 Application::Application(std::string&& plugin_dir):
     prev_result_(std::nullopt) {
@@ -7,6 +8,8 @@ Application::Application(std::string&& plugin_dir):
         pm_->load_plugins();
         calculator_ = std::make_unique<Calculator>(pm_);
         supported_ops_ = pm_->get_op_list();
+        constants_.insert({"pi", std::numbers::pi});
+        constants_.insert({"e", std::numbers::e});
     }
 
 void Application::run(std::istream& istream) {
@@ -19,17 +22,20 @@ void Application::run(std::istream& istream) {
         }
         if (input == "help") {
             std::cout << "Commands:\n type exit to quit\n type flush to reset previos calculation result\n type operations to\
-             get supported operations\n type update to load new plugins\n give a math example to calculate value\n    !!! Use '.' symbol to use floating point nums" << std::endl; 
+             get supported operations\n give a math example to calculate value\n    !!! Use '.' symbol to use floating point nums and $ before constants" << std::endl; 
         } else if (input == "flush") {
             prev_result_ = std::nullopt;
         } else if (input == "operations") {
+            std::cout << "operations: ";
             for(auto& op : supported_ops_) {
                 std::cout << op->name() << " ";
             }
             std::cout << std::endl;
-        } else if (input == "update") {
-            pm_->load_plugins();
-            supported_ops_ = pm_->get_op_list();
+            std::cout << "constants: ";
+            for(auto& constant: constants_) {
+                std::cout << constant.first << " ";
+            }
+            std::cout << std::endl;
         } else {
             std::vector<Token> tokens;
             tokens.reserve(input.size());
@@ -69,17 +75,26 @@ void Application::tokenize(std::string& input, std::vector<Token>& tokens) {
             }
             tokens.push_back({tokenType::NUMBER, nullptr, std::stod(token)});
         } else if (c == '(') {
-            auto name = new char[2];
-            strcpy(name, "(");
             tokens.push_back({tokenType::LPAREN});
         } else if (c == ')') {
-            auto name = new char[2];
-            strcpy(name, ")");
             tokens.push_back({tokenType::RPAREN});
         } else if (std::string("+-*/").find(c) != std::string::npos) {
             std::string op;
             op = c;
             tokens.push_back({tokenType::OPERATOR, nullptr, 0, std::move(op)});
+        } else if (c == '$') {
+            token.clear();
+            while (std::isalpha(static_cast<unsigned char>(input[i + 1]))) {
+                token += input[++i];
+            }
+            auto it = constants_.find(token);
+            if(it != constants_.end()) {
+                tokens.push_back({tokenType::NUMBER, nullptr, it->second});
+            } else {
+                throw std::runtime_error("Unknown math constant");
+            }
+        } else if (c == ',') {
+            tokens.push_back({tokenType::COMMA});
         } else {
             token.clear();
             token = c;

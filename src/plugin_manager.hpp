@@ -10,11 +10,6 @@
 template <typename T>
 using sptr = std::shared_ptr<T>;
 
-struct Plugin {
-    HMODULE handle;
-    sptr<IOperation> op;
-};
-
 class PluginManager {
 public:
     ~PluginManager();
@@ -25,6 +20,7 @@ public:
     std::vector<sptr<IOperation>> get_op_list() const;
     sptr<IOperation> get_info(const std::string& op) const;
 private:
-    std::unordered_map<std::string, Plugin> plugins_;
+    std::vector<HMODULE> loaded_libs_;
+    std::unordered_map<std::string, sptr<IOperation>> plugins_;
     std::string directory;
 };

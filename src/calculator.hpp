@@ -13,7 +13,7 @@ enum tokenType{
     NUMBER,
     OPERATOR,
     LPAREN, RPAREN,
-    FUNCTION, 
+    FUNCTION, COMMA
 };
 
 struct Token {

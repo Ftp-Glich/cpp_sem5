@@ -37,9 +37,30 @@ double Calculator::calculate(std::vector<Token>& tokens) {
             break;
         }
         case tokenType::FUNCTION: {
-            auto arg = st.top().val;
-            st.pop();
-            auto res = token.operation->operate(arg);
+            if (!token.operation)
+                throw std::logic_error("Function has no implementation");
+
+            unsigned int n = token.operation->arity;
+            if (st.size() < n)
+                throw std::logic_error("Not enough arguments for function " + token.operation->name());
+
+            std::vector<double> args;
+            args.reserve(n);
+            for (int i = 0; i < n; ++i) {
+                args.push_back(st.top().val);
+                st.pop();
+            }
+            std::reverse(args.begin(), args.end()); 
+
+            double res = 0;
+            if (n == 1) {
+                res = token.operation->operate(args[0], 0); 
+            } else if (n == 2) {
+                res = token.operation->operate(args[0], args[1]);
+            } else {
+                throw std::logic_error("Unsupported arity");
+            }
+
             st.push({tokenType::NUMBER, nullptr, res, ""});
             break;
         }
@@ -98,6 +119,16 @@ std::deque<Token> Calculator::shunting_yard(const std::vector<Token>& tokens) {
                 rpm.push_back(op_stack.top());
                 op_stack.pop();
             }
+            break;
+        case tokenType::COMMA: 
+            while (!op_stack.empty() && op_stack.top().type != tokenType::LPAREN) {
+                rpm.push_back(op_stack.top());
+                op_stack.pop();
+            }
+            if (op_stack.empty()) {
+                throw std::logic_error("Misplaced comma or mismatched parentheses");
+            }
+            break;
         default:
             break;
         }

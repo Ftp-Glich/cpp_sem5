@@ -6,4 +6,8 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_subdirectory(libs/degree_plugin)
 
+add_subdirectory(libs/sinus_plugin)
+
+add_subdirectory(libs/log_plugin)
+
 add_subdirectory(src)

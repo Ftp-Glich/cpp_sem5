@@ -29,4 +29,5 @@ private:
     sptr<PluginManager> pm_;
     std::optional<double> prev_result_;
     std::vector<sptr<IOperation>> supported_ops_;
+    std::unordered_map<std::string, double> constants_;
 };
