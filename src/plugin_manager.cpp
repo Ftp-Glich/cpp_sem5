@@ -34,7 +34,6 @@ void PluginManager::load_plugins() {
         );
         plugins_[instance->name()] = instance;
         loaded_libs_.push_back(lib);
-        std::cout << "Loaded plugin: " << instance->name() << "\n";
     }
 }
 

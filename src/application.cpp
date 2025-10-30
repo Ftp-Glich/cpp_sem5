@@ -57,6 +57,13 @@ void Application::run(std::istream& istream) {
     }
 }
 
+double Application::test(std::string&& input) {
+    std::vector<Token> tokens;
+    tokenize(input, tokens);
+    auto res = calculator_->calculate(tokens);
+    return res;
+}
+
 void Application::tokenize(std::string& input, std::vector<Token>& tokens) {
     std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c){ return std::tolower(c); });
     std::string token;
@@ -99,7 +106,7 @@ void Application::tokenize(std::string& input, std::vector<Token>& tokens) {
             token.clear();
             token = c;
             bool found = false;
-            while (i < input.size() && !std::isspace(static_cast<unsigned char>(input[i + 1]))) {
+            while (i < input.size() && !std::isspace(static_cast<unsigned char>(input[i]))) {
                 auto it = std::find_if(supported_ops_.begin(), supported_ops_.end(), [token](sptr<IOperation> info) { return info->name() == token; });
                 if(it != supported_ops_.end()) {
                     auto type = (*it)->is_operator ? tokenType::OPERATOR : tokenType::FUNCTION;

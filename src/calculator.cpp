@@ -29,7 +29,11 @@ double Calculator::calculate(std::vector<Token>& tokens) {
                 } else if (token.sign == "*") {
                     st.push({tokenType::NUMBER, nullptr, left * right, ""});
                 } else if (token.sign == "/") {
-                    st.push({tokenType::NUMBER, nullptr, left / right, ""});
+                    if (right != 0) {
+                        st.push({tokenType::NUMBER, nullptr, left / right, ""});
+                    } else {
+                        throw std::logic_error("division by zero");
+                    }
                 } else {
                     throw std::logic_error("Unknown token"); 
                 }

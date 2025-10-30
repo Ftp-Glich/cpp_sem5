@@ -22,6 +22,7 @@ public:
     ~Application() = default;
     explicit Application(std::string&& plugin_dir);
     void run(std::istream& istream);
+    double test(std::string&& input);
 private:
     void tokenize(std::string& input, std::vector<Token>& tokens);
     void update_pugins();
