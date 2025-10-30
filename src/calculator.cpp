@@ -15,6 +15,9 @@ double Calculator::calculate(std::vector<Token>& tokens) {
             st.push(token);
             break; 
         case tokenType::OPERATOR: {
+            if (st.size() < 2) {
+                throw std::logic_error("invalid operator usage");
+            }
             auto right = st.top().val;
             st.pop();
             auto left = st.top().val;
@@ -50,6 +53,9 @@ double Calculator::calculate(std::vector<Token>& tokens) {
 
             std::vector<double> args;
             args.reserve(n);
+            if (st.size() < n) {
+                throw std::logic_error("invalid function usage");
+            }
             for (int i = 0; i < n; ++i) {
                 args.push_back(st.top().val);
                 st.pop();

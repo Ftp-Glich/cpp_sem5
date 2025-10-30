@@ -82,16 +82,16 @@ TEST_F(CalculatorTest, ComplexExpressions) {
 }
 
 TEST_F(CalculatorTest, InvalidExpressions) {
-    EXPECT_THROW(app.test("2 +"), std::runtime_error);
+    EXPECT_THROW(app.test("2 +"), std::logic_error);
     EXPECT_THROW(app.test("(2 + 3"), std::logic_error);
-    EXPECT_THROW(app.test("2 + * 3"), std::runtime_error);
+    EXPECT_THROW(app.test("2 + * 3"), std::logic_error);
     EXPECT_THROW(app.test("unknown(5)"), std::runtime_error);
 }
 
 TEST_F(CalculatorTest, WhitespaceAndCase) {
     EXPECT_DOUBLE_EQ(app.test("  2   +   3  "), 5.0);
     EXPECT_DOUBLE_EQ(app.test("2 ^ 3"), 8.0);
-    EXPECT_DOUBLE_EQ(app.test("Sin(1.5708)"), 1.0);
+    EXPECT_NEAR(app.test("Sin(1.5708)"), 1.0, 1e-5);
 }
 
 TEST(ApplicationIntegrationTest, SequentialCalculations) {
