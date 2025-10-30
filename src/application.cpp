@@ -85,9 +85,15 @@ void Application::tokenize(std::string& input, std::vector<Token>& tokens) {
             tokens.push_back({tokenType::LPAREN});
         } else if (c == ')') {
             tokens.push_back({tokenType::RPAREN});
-        } else if (std::string("+-*/").find(c) != std::string::npos) {
-            std::string op;
-            op = c;
+        } else if (c == '+' || c == '-') {
+            bool unary = tokens.empty()
+                         || tokens.back().type == tokenType::OPERATOR
+                         || tokens.back().type == tokenType::LPAREN
+                         || tokens.back().type == tokenType::COMMA;
+            std::string op = unary ? std::string("u") + c : std::string(1, c); 
+            tokens.push_back({tokenType::OPERATOR, nullptr, 0, std::move(op)});
+        } else if (c == '*' || c == '/') {
+            std::string op(1, c);
             tokens.push_back({tokenType::OPERATOR, nullptr, 0, std::move(op)});
         } else if (c == '$') {
             token.clear();

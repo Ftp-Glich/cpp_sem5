@@ -2,11 +2,18 @@
 #include "plugin_interface.hpp"
 #include <string>
 #include <cmath>
+#include <exception>
+
 
 class LogOperation : public IOperation {
 public:
     std::string name() const override { return "log"; }
-    double operate(double a, double b) const override { return std::log2(a) / std::log2(b); }
+    double operate(double a, double b) const override { 
+        if(a <= 0 || b <= 0) {
+            std::__throw_logic_error("wrong usage of log");
+        }
+        return std::log2(a) / std::log2(b); 
+    }
 };
 
 extern "C" PLUGIN_API IOperation* create_plugin() {

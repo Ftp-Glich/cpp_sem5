@@ -12,6 +12,7 @@
 
 #include <string>
 
+
 class PLUGIN_API IOperation {
 public:
     virtual ~IOperation() = default;

@@ -3,7 +3,7 @@
 # Build
 ``` bash
     git clone gtest # clone to project source directory 
-    mkdir build
+    mkdir build && mkdir plugins
     cmake --build build --configure Debug
 ```
 

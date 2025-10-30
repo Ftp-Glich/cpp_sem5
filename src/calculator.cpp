@@ -14,31 +14,45 @@ double Calculator::calculate(std::vector<Token>& tokens) {
         case tokenType::NUMBER:
             st.push(token);
             break; 
-        case tokenType::OPERATOR: {
-            if (st.size() < 2) {
+       case tokenType::OPERATOR: {
+            unsigned int arity = 2;
+            if (token.operation) {
+                arity = token.operation->arity;
+            } else {
+                if (token.sign == "u-" || token.sign == "u+") arity = 1;
+            }
+        
+            if (st.size() < arity) {
                 throw std::logic_error("invalid operator usage");
             }
-            auto right = st.top().val;
-            st.pop();
-            auto left = st.top().val;
-            st.pop();
-            if(token.operation != nullptr) {
-                st.push({tokenType::NUMBER, nullptr, token.operation->operate(left, right), ""});
+        
+            if (arity == 1) {
+                double v = st.top().val; st.pop();
+                double res;
+                if (token.operation) {
+                    res = token.operation->operate(v, 0);
+                } else {
+                    if (token.sign == "u-") res = -v;
+                    else res = v;
+                }
+                st.push({tokenType::NUMBER, nullptr, res, ""});
             } else {
-                if (token.sign == "+") {
-                    st.push({tokenType::NUMBER, nullptr, left + right, ""});
-                } else if (token.sign == "-") {
-                    st.push({tokenType::NUMBER, nullptr, left - right, ""});
-                } else if (token.sign == "*") {
-                    st.push({tokenType::NUMBER, nullptr, left * right, ""});
-                } else if (token.sign == "/") {
-                    if (right != 0) {
-                        st.push({tokenType::NUMBER, nullptr, left / right, ""});
-                    } else {
-                        throw std::logic_error("division by zero");
+                double right = st.top().val; st.pop();
+                double left  = st.top().val; st.pop();
+                if (token.operation) {
+                    try {
+                        st.push({tokenType::NUMBER, nullptr, token.operation->operate(left, right), ""});
+                    } catch(std::exception& e) {
+                        throw std::logic_error(std::string("failed to evaluate expression - ") + e.what());
                     }
                 } else {
-                    throw std::logic_error("Unknown token"); 
+                    if (token.sign == "+") st.push({tokenType::NUMBER, nullptr, left + right, ""});
+                    else if (token.sign == "-") st.push({tokenType::NUMBER, nullptr, left - right, ""});
+                    else if (token.sign == "*") st.push({tokenType::NUMBER, nullptr, left * right, ""});
+                    else if (token.sign == "/") {
+                        if (right == 0) throw std::logic_error("division by zero");
+                        st.push({tokenType::NUMBER, nullptr, left / right, ""});
+                    } else throw std::logic_error("Unknown token");
                 }
             }
             break;
@@ -63,12 +77,16 @@ double Calculator::calculate(std::vector<Token>& tokens) {
             std::reverse(args.begin(), args.end()); 
 
             double res = 0;
-            if (n == 1) {
-                res = token.operation->operate(args[0], 0); 
-            } else if (n == 2) {
-                res = token.operation->operate(args[0], args[1]);
-            } else {
-                throw std::logic_error("Unsupported arity");
+            try {
+                if (n == 1) {
+                    res = token.operation->operate(args[0], 0); 
+                } else if (n == 2) {
+                    res = token.operation->operate(args[0], args[1]);
+                } else {
+                    throw std::logic_error("Unsupported arity");
+                }
+             } catch( std::exception& e) {
+                throw std::logic_error(std::string("failed to evaluate expression - ") + std::string(e.what()));
             }
 
             st.push({tokenType::NUMBER, nullptr, res, ""});
@@ -82,22 +100,25 @@ double Calculator::calculate(std::vector<Token>& tokens) {
     return st.top().val;
 }
 
+int precedence_by_sign(const std::string& s) {
+    if (s == "u-" || s == "u+") return 3;     
+    if (s == "^") return 4;                   
+    if (s == "*" || s == "/") return 2;
+    if (s == "+" || s == "-") return 1;
+    return 0;
+}
+
 bool Calculator::shouldPop(const Token& top, const Token& current) {
     if (top.type != tokenType::OPERATOR)
         return false;
 
-    int prec_top = top.operation ? top.operation->precedence
-                                 : (top.sign == "+" || top.sign == "-" ? 1 :
-                                    (top.sign == "*" || top.sign == "/" ? 2 :
-                                    (top.sign == "^" ? 3 : 0)));
-
-    int prec_cur = current.operation ? current.operation->precedence
-                                     : (current.sign == "+" || current.sign == "-" ? 1 :
-                                        (current.sign == "*" || current.sign == "/" ? 2 :
-                                        (current.sign == "^" ? 3 : 0)));
+    int prec_top = top.operation ? top.operation->precedence : precedence_by_sign(top.sign);
+    int prec_cur = current.operation ? current.operation->precedence : precedence_by_sign(current.sign);
 
     bool right_assoc = (current.operation && current.operation->right_associative)
-                        || current.sign == "^";
+                      || current.sign == "^"
+                      || current.sign == "u-"  
+                      || current.sign == "u+";
 
     return (prec_top > prec_cur) || (prec_top == prec_cur && !right_assoc);
 }

@@ -93,3 +93,7 @@ TEST_F(CalculatorTest, WhitespaceAndCase) {
     EXPECT_DOUBLE_EQ(app.test("2 ^ 3"), 8.0);
     EXPECT_NEAR(app.test("Sin(1.5708)"), 1.0, 1e-5);
 }
+
+TEST_F(CalculatorTest, InvalidFuncUsage) {
+    EXPECT_THROW(app.test("log(-100, 2)"), std::logic_error);
+}
