@@ -42,6 +42,7 @@ double PluginManager::execute(const std::string& op, double a, double b) const{
     if (it != plugins_.end()) {
         return it->second->operate(a, b);
     }
+    throw std::runtime_error("no such plugin");
 }
 
 bool PluginManager::exists(const std::string& op) const{
