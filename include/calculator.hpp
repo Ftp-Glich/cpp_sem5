@@ -31,7 +31,7 @@ public:
     double calculate(std::vector<Token>& tokens);
     ~Calculator() = default;
 private:    
-    bool shouldPop(Token top, Token cur);
+    bool shouldPop(const Token& top, const Token& current);
     std::deque<Token> shunting_yard(const std::vector<Token>& tokens);
     sptr<PluginManager> pm_;
 };

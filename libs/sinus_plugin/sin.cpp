@@ -14,6 +14,7 @@ extern "C" PLUGIN_API IOperation* create_plugin() {
     op->arity = 1;
     op->is_operator = false;
     op->right_associative = false;
+    op->precedence = 4;
     return op;
 }
 

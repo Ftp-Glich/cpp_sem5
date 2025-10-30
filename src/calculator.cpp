@@ -76,17 +76,24 @@ double Calculator::calculate(std::vector<Token>& tokens) {
     return st.top().val;
 }
 
-bool Calculator::shouldPop(Token top, Token cur) {
-    auto get_prec = [this](Token info) -> int {
-        if(info.operation != nullptr && pm_->exists(info.operation->name())) {
-            return 2;
-        } else if (info.sign == "*" || info.sign == "/") {
-            return 1;
-        } else {
-            return 0;
-        }
-    };
-    return (top.operation != nullptr && top.operation->is_operator) && (get_prec(top) > get_prec(cur) || (get_prec(top) == get_prec(cur) && !(top.operation != nullptr && cur.operation->right_associative)));
+bool Calculator::shouldPop(const Token& top, const Token& current) {
+    if (top.type != tokenType::OPERATOR)
+        return false;
+
+    int prec_top = top.operation ? top.operation->precedence
+                                 : (top.sign == "+" || top.sign == "-" ? 1 :
+                                    (top.sign == "*" || top.sign == "/" ? 2 :
+                                    (top.sign == "^" ? 3 : 0)));
+
+    int prec_cur = current.operation ? current.operation->precedence
+                                     : (current.sign == "+" || current.sign == "-" ? 1 :
+                                        (current.sign == "*" || current.sign == "/" ? 2 :
+                                        (current.sign == "^" ? 3 : 0)));
+
+    bool right_assoc = (current.operation && current.operation->right_associative)
+                        || current.sign == "^";
+
+    return (prec_top > prec_cur) || (prec_top == prec_cur && !right_assoc);
 }
 
 std::deque<Token> Calculator::shunting_yard(const std::vector<Token>& tokens) {

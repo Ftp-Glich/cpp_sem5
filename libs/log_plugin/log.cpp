@@ -13,7 +13,8 @@ extern "C" PLUGIN_API IOperation* create_plugin() {
     auto op = new LogOperation();
     op->arity = 2;
     op->is_operator = false;
-    op->right_associative = false;
+    op->right_associative = true;
+    op->precedence = 4;
     return op;
 }
 

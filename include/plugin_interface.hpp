@@ -20,6 +20,7 @@ public:
     unsigned int arity;
     bool right_associative;
     bool is_operator;
+    int precedence = 0; 
 };
 
 extern "C" PLUGIN_API IOperation* create_plugin();
