@@ -22,7 +22,7 @@ void Application::run(std::istream& istream) {
         }
         if (input == "help") {
             std::cout << "Commands:\n type exit to quit\n type flush to reset previos calculation result\n type operations to\
-             get supported operations\n give a math example to calculate value\n    !!! Use '.' symbol to use floating point nums and $ before constants" << std::endl; 
+             get supported operations\n give a math example to calculate value\n    !!! Use '.' symbol to use floating point nums and $ before math constants" << std::endl; 
         } else if (input == "flush") {
             prev_result_ = std::nullopt;
         } else if (input == "operations") {

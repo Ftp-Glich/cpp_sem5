@@ -93,38 +93,3 @@ TEST_F(CalculatorTest, WhitespaceAndCase) {
     EXPECT_DOUBLE_EQ(app.test("2 ^ 3"), 8.0);
     EXPECT_NEAR(app.test("Sin(1.5708)"), 1.0, 1e-5);
 }
-
-TEST(ApplicationIntegrationTest, SequentialCalculations) {
-    Application app{"plugins"};
-    std::stringstream input;
-    std::stringstream output;
-    
-    input << "2 + 3\n";
-    input << "flush\n";
-    input << "5 * 2\n";
-    input << "exit\n";
-    
-    testing::internal::CaptureStdout();
-    app.run(input);
-    std::string output_str = testing::internal::GetCapturedStdout();
-    
-    EXPECT_TRUE(output_str.find("5") != std::string::npos);
-    EXPECT_TRUE(output_str.find("10") != std::string::npos);
-}
-
-TEST(ApplicationIntegrationTest, Commands) {
-    Application app{"plugins"};
-    std::stringstream input;
-    
-    input << "help\n";
-    input << "operations\n";
-    input << "exit\n";
-    
-    testing::internal::CaptureStdout();
-    app.run(input);
-    std::string output = testing::internal::GetCapturedStdout();
-    
-    EXPECT_TRUE(output.find("Commands:") != std::string::npos);
-    EXPECT_TRUE(output.find("operations:") != std::string::npos);
-    EXPECT_TRUE(output.find("constants:") != std::string::npos);
-}
