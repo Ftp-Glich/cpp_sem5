@@ -2,7 +2,7 @@
 
 # Build
 ``` bash
-    git clone gtest # clone to project source directory 
+    git clone https://github.com/google/googletest.git # clone to project source directory 
     mkdir build && mkdir plugins
     cmake --build build
 ```
