@@ -4,7 +4,7 @@
 ``` bash
     git clone gtest # clone to project source directory 
     mkdir build && mkdir plugins
-    cmake --build build --configure Debug
+    cmake --build build
 ```
 
 # Run
