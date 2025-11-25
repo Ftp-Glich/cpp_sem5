@@ -2,9 +2,9 @@
 
 # Build
 ``` bash
-    git clone https://github.com/google/googletest.git # clone to project source directory 
+    cmake -G "Ninja" -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_BUILD_TYPE=Debug -B build -S .
     mkdir build && mkdir plugins
-    cmake --build build
+    cmake --build build --config Debug
 ```
 
 # Run
