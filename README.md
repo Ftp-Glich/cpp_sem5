@@ -2,7 +2,7 @@
 
 # Build
 ``` bash
-    cmake -G "Ninja" -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=23  -DCMAKE_C_COMPILER=clang -DCMAKE_C_STANDARD=11 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_C_STANDARD_REQUIRED=ON -DCMAKE_BUILD_TYPE=Debug -B -DCMAKE_CXX_FLAGS="-g -fstandalone-debug -fno-limit-debug-info" build -S .
+    cmake -G "Ninja" -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=23  -DCMAKE_C_COMPILER=clang -DCMAKE_C_STANDARD=11 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_C_STANDARD_REQUIRED=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-g -fstandalone-debug -fno-limit-debug-info" -B build -S .
     mkdir plugins
     cmake --build build --config Debug
 ```
