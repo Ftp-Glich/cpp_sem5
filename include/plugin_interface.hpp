@@ -11,7 +11,7 @@
 #endif
 
 #include <string>
-
+#include <stdexcept>
 
 class PLUGIN_API IOperation {
 public:

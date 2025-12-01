@@ -4,7 +4,6 @@
 #include <cmath>
 #include <exception>
 
-
 class LogOperation : public IOperation {
 public:
     std::string name() const override { return "log"; }
