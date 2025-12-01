@@ -9,7 +9,7 @@ public:
     std::string name() const override { return "log"; }
     double operate(double a, double b) const override { 
         if(a <= 0 || b <= 0) {
-            std::logic_error("wrong usage of log");
+            throw std::logic_error("wrong usage of log");
         }
         return std::log2(a) / std::log2(b); 
     }
