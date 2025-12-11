@@ -1,0 +1,26 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "windows-clang-ninja",
+      "displayName": "Windows Clang + Ninja",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_LINKER": "lld-link",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "/EHsc /Zi /std:c++23",
+        "CMAKE_EXE_LINKER_FLAGS": "/DEBUG",
+         "CMAKE_CXX_STANDARD": "23"
+      },
+      "environment": {
+        "CC": "clang-cl",
+        "CXX": "clang-cl",
+        "AR": "llvm-lib",
+        "LD": "lld-link"
+      }
+    }
+  ]
+}
