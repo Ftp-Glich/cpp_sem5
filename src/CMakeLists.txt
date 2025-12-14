@@ -1,1 +1,1 @@
-add_executable(calculator main.cpp plugin_manager.cpp application.cpp calculator.cpp)
+add_executable(calculator main.cpp command.cpp engine.cpp engine.cpp)
