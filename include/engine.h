@@ -6,5 +6,5 @@ class Engine {
 public:
     void register_command(Wrapper* wrapper, const std::string& name);
 
-    std::any execute(const std::string& name, const std::unordered_map<std::string, std::any>& args);
+    std::any execute(const std::string& name, const std::unordered_map<std::string, std::any>& args) const;
 };

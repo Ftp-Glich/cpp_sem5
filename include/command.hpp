@@ -9,13 +9,13 @@
 class BaseCommand {
 public:
     virtual ~BaseCommand() = default;
-    virtual std::any execute(const std::map<std::string, std::any>& args) = 0;
+    virtual std::any execute(const std::unordered_map<std::string, std::any>& args) = 0;
 };
 
 template <typename T, typename Ret, typename... Args>
 class Command: BaseCommand {
 public:
-    Command(T* obj, Ret (T::*method)(Args...), std::vector<std::string> param_order, std::unordered_map<std::string, std::any> default_args)
+    Command(T* obj, Ret (T::*method)(Args...), const std::vector<std::string>&& param_order, const std::unordered_map<std::string, std::any>& default_args)
      : obj(obj), method(method), paramOrder(param_order), defaultArgs(default_args) {}
 
     std::any execute(const std::unordered_map<std::string, std::any>& args) {

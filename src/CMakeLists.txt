@@ -1,1 +1,3 @@
-add_executable(calculator main.cpp command.cpp engine.cpp engine.cpp)
+add_executable(executor main.cpp engine.cpp)
+
+target_include_directories(executor PRIVATE  ${PROJECT_SOURCE_DIR}/include)
