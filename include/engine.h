@@ -1,7 +1,5 @@
 #include "wrapper.hpp"
 
-#include <unordered_map>
-
 class Engine {
     std::unordered_map<std::string, std::unique_ptr<BaseCommand>> commands;
 
