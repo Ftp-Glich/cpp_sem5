@@ -5,13 +5,10 @@ class Wrapper {
 
 public:
     template <typename T, typename Ret, typename... Args>
-    Wrapper(T* obj, Ret (T::*method)(Args...), std::map<std::string, std::any> defaultArgs) {
-        std::vector<std::string> paramOrder;
-        paramOrder.reserve(defaultArgs.size());
-        for(const auto& [key, val]: defaultArgs) {
-            paramOrder.push_back(key);
-        }
-        cmd = Command(obj, method, std::move(paramOrder), defaultArgs);
+    Wrapper(T* obj, Ret (T::*method)(Args...), std::vector<std::pair<std::string, std::any>>&& defaultArgs) {
+        cmd = std::make_unique<Command<T, Ret, Args...>>(
+            obj, method, std::move(defaultArgs)
+        );
     }
 
     friend class Engine;

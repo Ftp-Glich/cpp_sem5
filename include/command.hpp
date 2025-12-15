@@ -9,29 +9,35 @@
 class BaseCommand {
 public:
     virtual ~BaseCommand() = default;
-    virtual std::any execute(const std::unordered_map<std::string, std::any>& args) = 0;
+    virtual std::any execute(const std::vector<std::pair<std::string, std::any>>& args) = 0;
 };
 
 template <typename T, typename Ret, typename... Args>
-class Command: BaseCommand {
+class Command: public BaseCommand {
 public:
-    Command(T* obj, Ret (T::*method)(Args...), const std::vector<std::string>&& param_order, const std::unordered_map<std::string, std::any>& default_args)
-     : obj(obj), method(method), paramOrder(param_order), defaultArgs(default_args) {}
+    Command(T* obj, Ret (T::*method)(Args...), const std::vector<std::pair<std::string, std::any>>&& default_args)
+     : obj(obj), method(method) {
+        paramOrder.reserve(default_args.size());
+        for (auto& [name, value] : default_args) {
+            paramOrder.push_back(name);
+            defaultArgs[name] = std::move(value);
+        }
 
-    std::any execute(const std::unordered_map<std::string, std::any>& args) {
-        std::unordered_map<std::string, std::any> mergedArgs = defaultArgs;
-        for(const auto& [key, value]: args) {
-            auto it = mergedArgs.find(key);
-            if (it == mergedArgs.end()) {
-                throw std::runtime_error("Unknown arg: " + key);
-            } 
+        if (paramOrder.size() != sizeof...(Args)) {
+            throw std::invalid_argument(
+                "Parameter count mismatch: " + 
+                std::to_string(paramOrder.size()) + " vs " + 
+                std::to_string(sizeof...(Args))
+            );
+        }
+    }
+
+    std::any execute(const std::vector<std::pair<std::string, std::any>>& args) {
+        auto mergedArgs = defaultArgs;
+        for (const auto& [key, value] : args) {
             mergedArgs[key] = value;
         }
-        for (const auto& paramName : paramOrder) {
-            if (mergedArgs.find(paramName) == mergedArgs.end()) {
-                throw std::runtime_error("Missing required parameter: " + paramName);
-            }
-        }
+
         return callMethod(mergedArgs, std::index_sequence_for<Args...>{});
     }
 
@@ -48,7 +54,7 @@ private:
     }
 
     T* obj;
-    Ret (T::*method)(Ards...) method;
-    std::unordered_map<std::string, std::any> defaultArgs;
-    std::vector<std::stirng> paramOrder;
+    Ret (T::*method)(Args...);
+    std::vector<std::string> paramOrder; 
+    std::unordered_map<std::string, std::any> defaultArgs; 
 };
