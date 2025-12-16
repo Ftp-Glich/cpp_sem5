@@ -8,6 +8,7 @@
 #include <utility>
 #include <type_traits>
 #include <iterator>
+#include <functional>
 
 template <typename Container>
 concept ArgumentContainer = requires(Container c) {
@@ -69,11 +70,18 @@ private:
     std::any callMethod(Container&& mergedArgs, 
                         std::index_sequence<I...>) 
     {
-        return std::any(
-            (obj->*method)(
-                std::any_cast<Args>(mergedArgs.at(paramOrder[I]))...
-            )
+        auto args_tuple = std::make_tuple(
+            std::any_cast<Args>(mergedArgs.at(paramOrder[I]))...
         );
+
+        return std::any(
+            std::apply(
+                [this](auto&&... args) { 
+                    return std::invoke(method, obj, args...); 
+                }, 
+                args_tuple
+            )
+);
     }
 
     T* obj;
