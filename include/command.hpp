@@ -55,6 +55,14 @@ public:
             );
         }
     }
+    template <ArgumentContainer Container>
+    std::any execute_impl(Container&& args) {
+        auto mergedArgs = defaultArgs;
+        for (const auto& [key, value] : args) {
+            mergedArgs[key] = value;
+        }
+        return callMethod(std::move(mergedArgs), std::index_sequence_for<Args...>{});
+    }
 
 private:
     template <size_t... I, ArgumentContainer Container>
@@ -66,15 +74,6 @@ private:
                 std::any_cast<Args>(mergedArgs.at(paramOrder[I]))...
             )
         );
-    }
-    
-    template <ArgumentContainer Container>
-    std::any execute_impl(Container&& args) {
-        auto mergedArgs = defaultArgs;
-        for (const auto& [key, value] : args) {
-            mergedArgs[key] = value;
-        }
-        return callMethod(std::move(mergedArgs), std::index_sequence_for<Args...>{});
     }
 
     T* obj;
